@@ -7,6 +7,7 @@
       1. peering with below HVN
    2. EKS 
       1. github action self hosted runner.
+      2. consul agents and injector agents 
 2. HCP:
    1. HVN - 172.25.32.0/20
    2. CONSUL 
