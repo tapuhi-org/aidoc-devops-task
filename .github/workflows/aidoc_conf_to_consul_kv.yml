@@ -1,0 +1,75 @@
+
+name: push_config_to_consul
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'APP/TAPUHI-AIDOC-APP/conf/'
+env:
+  CONSUL_HTTP_ADDR: tapuhi-aidoc-consul.private.consul.c397b5f3-a1a5-43dd-abd9-5f4ab0c6fedf.aws.hashicorp.cloud:443
+  CONSUL_HTTP_SSL: true
+
+jobs:
+  # This workflow contains a single job called "build"
+  push_to_kv:
+    runs-on: self-hosted
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: install python requirments
+        run: pip3 install -r .github/scripts/requirments.txt
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v22.2
+        with:
+          files: |
+            **/*.json
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v2.4.0
+        with:
+          url: https://tapuhi-aidoc-vault-private-vault-34504ffe.f7ee9677.z1.hashicorp.cloud:8200
+          method: kubernetes
+#          token: ${{ secrets.VAULT_TOKEN }}
+          role: actions-runner-controller
+          namespace: admin/
+          secrets: |
+              consul/creds/production token | CONSUL_HTTP_TOKEN
+      - name:
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do 
+              python3 .github/scripts/json_to_consul_kv.py --file $file 
+          done
+  sanity_check:
+    runs-on: self-hosted
+    needs: push_to_kv
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - uses: amendoa/action-setup-consul-template@v1
+        with:
+          version: 0.27.0
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v22.2
+        with:
+          files: |
+            **/*.json
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v2.4.0
+        with:
+          url: https://tapuhi-aidoc-vault-private-vault-34504ffe.f7ee9677.z1.hashicorp.cloud:8200
+          method: kubernetes
+          role: actions-runner-controller
+          namespace: admin/
+          secrets: |
+            consul/creds/production token | CONSUL_HTTP_TOKEN
+
+      - name: check diffs between consul kv and conf file
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do 
+              echo $file
+              consul-template -template "${file}.tpl:/tmp/tmp_file.json" -once
+              diff <(jq --sort-keys . $file ) <(jq --sort-keys . /tmp/tmp_file.json )              
+          done
