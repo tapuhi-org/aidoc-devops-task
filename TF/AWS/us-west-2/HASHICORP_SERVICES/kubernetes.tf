@@ -19,25 +19,6 @@ module "eks" {
   }
 }
 
-resource "helm_release" "vault-secret-injector" {
-  chart            = "vault"
-  name             = "vault-secret-injector"
-  namespace        = "vault"
-  repository       = "https://helm.releases.hashicorp.com"
-  cleanup_on_fail  = true
-  force_update     = false
-  create_namespace = true
-  timeout          = 300
-  set {
-    name  = "injector.enabled"
-    value = "true"
-  }
-  set {
-    name = "injector.externalVaultAddr"
-    value = "https://tapuhi-aidoc-vault-private-vault-34504ffe.f7ee9677.z1.hashicorp.cloud:8200"
-  }
-}
-
 resource "helm_release" "cert-manager-helm-release" {
   chart            = "cert-manager"
   name             = "cert-manager"
