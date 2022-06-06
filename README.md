@@ -23,7 +23,7 @@ In the task there was a request to expose the consul to public. Still I prefered
 ## What else can be improved 
 1. Disable all public HCP endpoints and access everything from the private network 
 2. Using atlantis or terraform cloud to prevent the use of unencrypted tokens during terraform run or using ENV variables
-3. Instead of using the public endpoints for HCP services using a k8s service with loadbalancer served from withing the VPC exosed through nat-gateway with specific IPs whitelist or leave it in private network and access it through VPN (preffarable)  
+3. Instead of using the public endpoints for HCP services using a k8s service with loadbalancer served from within the VPC exosed through nat-gateway with specific IPs whitelist or leave it in private network and access it through VPN (prefarable)  
 
 
 
