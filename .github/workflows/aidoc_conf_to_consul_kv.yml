@@ -3,6 +3,8 @@ name: push_config_to_consul
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - 'APP/TAPUHI-AIDOC-APP/conf/'
 env:
